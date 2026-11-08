@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      .cls-1 {
+        opacity: .85;
+      }
+
+      .cls-2 {
+        fill: #0071bc;
+      }
+
+      .cls-3 {
+        fill: #232d4c;
+      }
+
+      .cls-4 {
+        opacity: .25;
+      }
+
+      .cls-5 {
+        opacity: .4;
+      }
+
+      .cls-6 {
+        opacity: .55;
+      }
+
+      .cls-7 {
+        fill: #282828;
+      }
+
+      .cls-8 {
+        opacity: 0;
+      }
+
+      .cls-9 {
+        opacity: .7;
+      }
+
+      .cls-10 {
+        opacity: .1;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-7" x="1" y="1" width="1918" height="1078"/>
+    <path class="cls-3" d="M1918,2v1076H2V2h1916M1920,0H0v1080h1920V0h0Z"/>
+  </g>
+  <g>
+    <polygon class="cls-2" points="1753.97 272.96 1905.55 10.41 1602.39 10.41 1753.97 272.96"/>
+    <g class="cls-1">
+      <polygon class="cls-2" points="1581.56 10.41 1429.98 272.96 1733.14 272.96 1581.56 10.41"/>
+    </g>
+    <g class="cls-9">
+      <polygon class="cls-2" points="1409.15 272.96 1560.73 10.41 1257.57 10.41 1409.15 272.96"/>
+    </g>
+    <g class="cls-6">
+      <polygon class="cls-2" points="1236.74 10.41 1085.17 272.96 1388.32 272.96 1236.74 10.41"/>
+    </g>
+    <g class="cls-5">
+      <polygon class="cls-2" points="1063.3 272.96 1214.87 10.41 911.72 10.41 1063.3 272.96"/>
+    </g>
+    <g class="cls-4">
+      <polygon class="cls-2" points="890.89 10.41 739.31 272.96 1042.47 272.96 890.89 10.41"/>
+    </g>
+    <g class="cls-10">
+      <polygon class="cls-2" points="718.48 272.96 870.06 10.41 566.9 10.41 718.48 272.96"/>
+    </g>
+    <g class="cls-8">
+      <polygon class="cls-2" points="546.07 10.41 394.49 272.96 697.65 272.96 546.07 10.41"/>
+    </g>
+  </g>
+  <g>
+    <polygon class="cls-2" points="161.99 807.04 10.41 1069.59 313.57 1069.59 161.99 807.04"/>
+    <g class="cls-1">
+      <polygon class="cls-2" points="334.4 1069.59 485.98 807.04 182.82 807.04 334.4 1069.59"/>
+    </g>
+    <g class="cls-9">
+      <polygon class="cls-2" points="506.81 807.04 355.23 1069.59 658.39 1069.59 506.81 807.04"/>
+    </g>
+    <g class="cls-6">
+      <polygon class="cls-2" points="679.22 1069.59 830.79 807.04 527.64 807.04 679.22 1069.59"/>
+    </g>
+    <g class="cls-5">
+      <polygon class="cls-2" points="852.67 807.04 701.09 1069.59 1004.24 1069.59 852.67 807.04"/>
+    </g>
+    <g class="cls-4">
+      <polygon class="cls-2" points="1025.07 1069.59 1176.65 807.04 873.49 807.04 1025.07 1069.59"/>
+    </g>
+    <g class="cls-10">
+      <polygon class="cls-2" points="1197.48 807.04 1045.9 1069.59 1349.06 1069.59 1197.48 807.04"/>
+    </g>
+    <g class="cls-8">
+      <polygon class="cls-2" points="1369.89 1069.59 1521.47 807.04 1218.31 807.04 1369.89 1069.59"/>
+    </g>
+  </g>
+</svg>

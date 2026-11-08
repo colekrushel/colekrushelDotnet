@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cole Krushel's Personal Website</title>
+    <style>
+		html {
+			/* vars to manipulate for animations */
+			--top-tri-position: 0px;
+			--right-tri-position: 0px;
+			--left-tri-position: 500px;
+		}
+		canvas {
+			width: 100%;
+			height: 100%;
+		}
+		html, body {
+			margin: 0;
+			height: 100%;
+		}
+		body {
+			background-color: black;
+			overflow: hidden;
+		}
+		a {
+			text-decoration: none;
+			color: lightblue;
+		}
+
+		.triGroup {
+			position: absolute;
+			color: white;
+			font-family: 'Courier New', Courier, monospace;
+			user-select: none; 
+		}
+		.triContent {
+			text-align: center;
+			position: fixed;
+			user-select: none; 
+		}
+
+		.notActive {
+			position: absolute;
+			display: none;
+		}
+
+		.triContent img {
+			width: 50%;
+		}
+
+		.showContent {
+			animation-name: fadeIn;
+			animation-duration: 1s;
+			animation-fill-mode: forwards;
+		}
+
+		@keyframes fadeIn {
+			0% {opacity: 0}
+			100% {opacity: 1}
+		}
+		.hideContent {
+			animation-name: fadeOut;
+			animation-duration: .2s;
+			animation-fill-mode: forwards;
+		}
+
+		@keyframes fadeOut {
+			0% {opacity: 1}
+			100% {opacity: 0}
+		}
+
+		.contentMenu {
+			position: absolute;
+			left: 50%;
+			top: 200px;
+			transform: translate(-50%, 0);
+			height: 400px;
+			width: 700px;
+			background-image: url("./resources/menu1.jpg");
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: auto 100%;
+			color: white;
+		}
+
+		.infoPanel {
+			color: white;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			/* width: 0; */
+			aspect-ratio: 7 / 4;
+			background-image: url("./resources/menu1.jpg");
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: auto 100%;
+			transform: translate(-50%, -50%);
+			animation: expandFromCenter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+			font-family: 'Courier New', Courier, monospace;
+		}
+
+		@keyframes expandFromCenter {
+			0% {
+				/* width: 0; */
+				height: 0;
+				font-size: 0;
+			}
+			100% {
+				/* width: 40vw; */
+				height: 50vh;
+				font-size: 2.5vh;
+			}
+		}
+
+		.hiddenPanel {
+			animation: expandFromCenter 0.4s cubic-bezier(0.4, 0, 0.2, 1) reverse;
+		}
+
+		.infoPanel h2{
+			padding: 6%;
+			padding-left: 3%;
+			margin: 0;
+		}
+
+		.infoPanel p {
+			padding-left: 5%;
+			width: 50%;
+			font-size: 70%;
+			
+		}
+		.infoPanel a {
+			font-size: 150%;
+		}
+		.infoPanel img {
+			width: 35%;
+			position: absolute;
+			right: 5%;
+			top: 50%;
+			transform: translateY(-50%);
+			margin-bottom: 20%;;
+		}
+
+		#panelContent {
+			display: flex;
+		}
+
+
+		.closeBtn {
+			position: absolute;
+			bottom: 2vh;
+			left: 10vh;
+			border: none;
+			padding: 3% 8%;
+			background: linear-gradient(135deg, #282828, #003355);
+			color: #ffffff;
+			font-size: 90%;
+			cursor: pointer;
+			transform: skew(20deg);
+			box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+			/* transition: all 0.25s ease; */
+		}
+
+		@media(orientation: portrait){
+			.infoPanel {
+				animation: expandFromCenterNarrow 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+			}
+			.closeBtn {
+				bottom: -10vh;
+				padding: 8% 16%;
+				left: 50%;
+				transform: translateX(-50%) skew(20deg);
+			}
+
+		}
+		@media(orientation: landscape){
+		.closeBtn:hover {
+			background: linear-gradient(135deg, #282828, #0071bc);
+			transform: skew(20deg) translateY(-2px);
+		
+		}
+		.closeBtn:active {
+			transform: skew(20deg) translateY(0);
+		}
+		}
+		.closeBtn span {
+			display: inline-block;
+			transform: skew(-20deg); /* un-skew text */
+		}
+
+
+
+		@keyframes expandFromCenterNarrow {
+			0% {
+				/* width: 0; */
+				width: 0;
+				font-size: 0;
+			}
+			100% {
+				/* width: 40vw; */
+				width: 100%;
+				font-size: 2.5vh;
+			}
+		}
+
+		
+		.image-overlay {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.8);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+			z-index: 9999;
+		}
+
+
+		.image-overlay.active {
+			opacity: 1;
+			pointer-events: all;
+		}
+
+
+		.image-overlay img {
+			max-width: 90vw;
+			max-height: 90vh;
+			box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+			cursor: zoom-out;
+		}
+
+
+		.zoomable {
+			cursor: zoom-in;
+		}
+		
+
+    </style>
+
+	<!-- menu logic state storage; used for both menus? -->
+	<!-- old 2d menu -->
+    <!-- <script src="./triMenu.js"></script> -->
+	<!-- new 3d menu -->
+	<script type="module" src="./renderedMenu.js"></script>
+  </head>
+  <body>
+    <title>welcome</title>
+    <!-- <canvas id="maincanvas"></canvas> -->
+    <!--
+	views are organized as groups of threes a triGroup
+	each triGroup has three triContent blocks, which have text or images within them and can be designated as transitions (which makes them transition into their nested triContent when clicked)
+	the first triContent is displayed as the top tri, the second the bottom-right tri, and the third the bottom-left tri
+	
+	-->
+	<section class="triGroup" id="defaultGroup">
+		<div class="triContent" data-transitionTarget="AboutMe">
+			<h2>About Me</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="Projects">
+			<h2>Projects</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="Designs">
+			<h2>Designs</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="active">Hi! I'm Cole Krushel. I love making interactive things.<br> Like this website!</h2>
+		</div>
+	</section>
+	<section class="triGroup" id="Projects">
+		<div class="triContent" data-transitionTarget="SuchLife">
+			<h2>Such Life</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="DreamDiver">
+			<h2>Dream Diver</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="Skquid">
+			<h2>Skquid</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			
+		</div>
+	</section>
+	<section class="triGroup" id="SuchLife">
+		<div class="triContent">
+			<h2>What is this?</h2>
+		</div>
+		<div class="triContent">
+			<h2>What I did</h2>
+		</div>
+		<div class="triContent">
+			<h2>Links</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Such Life</h2>
+			<div class="topContent notActive">
+				<p>Such Life is a 2D top-down sandbox game made in Unity with C#. The player can explore an overworld, fighting through randomly generated dungeons and crafting items and equipment to progress.</p>
+				<img src="./resources/suchLife1.png" alt="Screenshot of topdown 2D pixel art game showing block breaking">
+			</div>
+			<div class="rightContent notActive">
+				<p>&#8226; Developed multiple integrated systems such as a graph-based dungeon generator and chunk manager/loader. <br>&#8226; lead the project in 2025, where I managed and instructed new members to implement features like combat additions and a consumable item system. Still participating at present.
+				</p>
+				<img src="./resources/suchLife2.png" alt="Screenshot of topdown 2D pixel art game showing enemies and crafting">
+
+			</div>
+			<div class="leftContent notActive">
+				<p>Tech stack: Unity, C# <br><br>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/gaberdell/SuchLife3.0">GitHub Repo</a></p>
+				
+			</div>
+		</div>
+	</section>
+	<section class="triGroup" id="DreamDiver">
+		<div class="triContent">
+			<h2>What is this?</h2>
+		</div>
+		<div class="triContent">
+			<h2>What I did</h2>
+		</div>
+		<div class="triContent">
+			<h2>Links</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Dream Diver</h2>
+			<div class="topContent notActive">
+				<p>DreamDiver is a first-person, grid-based action game developed in Unity that has the player navigating dungeons, fighting enemies with the cursor, and collecting equipment and currency to become stronger. Developed entirely by myself!</p>
+				<img src="./resources/dreamdiver1.png" alt="Screenshot of 3D first person game">
+			</div>
+			<div class="rightContent notActive">
+				<p>&#8226; Developed a system of integrated gameplay systems and mechanics to facilitate player exploration through dungeons, combat with enemies, and power progression <br>
+					&#8226; Created visual assets such as UI and 3D models to aid the gameplay and provide a sense of 'place' and setting within the game</p>
+				<img src="./resources/dreamdiver2.png" alt="Screenshot of 3D first person game">
+			</div>
+			<div class="leftContent notActive">
+				<p>	Tech stack: Unity, C#, Blender, Adobe Illustrator<br><br>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/colekrushel/DreamDiverGame">GitHub Repo</a><br>
+<a target="_blank" rel="noopener noreferrer" href="https://colekrushel.itch.io/dreamdiver">Itch.io page</a></p>
+				
+			</div>
+		</div>
+	</section>
+
+	<section class="triGroup" id="Skquid">
+		<div class="triContent">
+			<h2>What is this?</h2>
+		</div>
+		<div class="triContent">
+			<h2>What I did</h2>
+		</div>
+		<div class="triContent">
+			<h2>Links</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Skquid</h2>
+			<div class="topContent notActive">
+				<p>Skquid is a social media web platform that allows users to connect via avenues of event and skill sharing. Users can create accounts and find and chat with other users searchable by skill or other filters. They can also create event groups with other users to meet up with.</p>
+				<img src="./resources/skquid1.png" alt="">
+			</div>
+			<div class="rightContent notActive">
+				<p>&#8226;  I implemented the messaging page functionality using WebSockets and MongoDB collections.<br>
+					&#8226;  Users can have live chats with each other on the site, and send and receive new messages to friends or users they find through searching.</p>
+				
+			</div>
+			<div class="leftContent notActive">
+				<p>Tech stack: CSS/HTML/JS, MongoDB, Express, NodeJS, React<br><br>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/colekrushel/ITWS-4500-Skquid-project-public/tree/main">GitHub Repo</a></p>
+				
+			</div>
+		</div>
+	</section>
+
+	<section class="triGroup" id="AboutMe">
+		<div class="triContent">
+			<h2>Who?</h2>
+		</div>
+		<div class="triContent">
+			<h2>History</h2>
+		</div>
+		<div class="triContent">
+			<h2>Resume</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter" style="display: none;">About Me</h2>
+			<div class="topContent notActive">
+				<p>I'm Cole Krushel, a Junior at RPI majoring in Computer Science and Information Technology & Web Science. I love to make interactive software, from games to websites, and I hope this site can give you a good sense of that! </p>
+				<img src="./resources/meAndTheCatCropped.jpg" alt="the site owner Cole Krushel sitting next to his cat Maus">
+			</div>
+			<div class="rightContent notActive">
+				<p>&#8226; I have lots of experience in Web Development, having been learning for nearly 10 years and creating numerous CRUD and full stack applications along the way.<br>
+					&#8226; I also have been gaining experience in game development and graphic design, spending a lot of extracurricular time on various game projects and graphic design classes.</p>
+				<img src="./resources/finallogocolornotext.png" alt="the site owner Cole Krushels' personal logo; a pixel-y CK with a mouse cursor over it">
+			</div>
+			<div class="leftContent notActive">
+				<p><a target="_blank" rel="noopener noreferrer" href="./resumeWebView.html">My resume can be viewed as a web page in a new tab and downloaded from this link</a>
+					</p>
+			</div>
+		</div>
+	</section>
+	<section class="triGroup" id="Designs">
+		<div class="triContent" data-transitionTarget="Posters">
+			<h2>Posters</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="Brand">
+			<h2>Personal Brand</h2>
+		</div>
+		<div class="triContent" data-transitionTarget="Misc">
+			<h2>Misc</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			
+		</div>
+	</section>
+	<section class="triGroup" id="Posters">
+		<div class="triContent">
+			<h2>Landmark</h2>
+		</div>
+		<div class="triContent">
+			<h2>Concert</h2>
+		</div>
+		<div class="triContent">
+			<h2>Vote!</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Posters</h2>
+			<div class="topContent notActive">
+				<p>Informational poster on a landmark I created in Spring 2026 for Information Design class. This one has bleed and printing marks in preparation for being physically printed.</p>
+				<img src="./resources/LandmarkImg.jpg" alt="">
+			</div>
+			<div class="rightContent notActive">
+				<p>Poster I created in Fall 2024 for Intro to Graphic Design class. The prompt was to create a fake concert poster for a genre of your choice. What can I say, chiptune is an underrated genre. <br></p>
+				<img src="./resources/chipfestImg.jpg" alt="">
+			</div>
+			<div class="leftContent notActive">
+				<p>Poster I also created in Fall 2024 for Intro to Graphic Design class. The prompt was to create a bipartisan call-to-action poster for the presidential election.</p>
+				<img src="./resources/VotePoster.png" alt="">
+			</div>
+		</div>
+	</section>
+	<section class="triGroup" id="Brand">
+		<div class="triContent">
+			<h2>Logo</h2>
+		</div>
+		<div class="triContent">
+			<h2>Business Card</h2>
+		</div>
+		<div class="triContent">
+			<h2>Letterhead</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Brand</h2>
+			<div class="topContent notActive">
+				<p>My personal logo I created in my Intro to Graphic Design Class. There are many variations, but the colored one is shown here on a white background to make it easier to see.</p>
+				<img src="./resources/finallogocolorPNG.png" alt="">
+			</div>
+			<div class="rightContent notActive">
+				<p>Business card I created as part of my personal brand for Intro to Graphic Design class. Went for a vaguely sleek tech-y theme but not too modern.<br></p>
+				<img src="./resources/bCardImgCropped.jpg" alt="">
+			</div>
+			<div class="leftContent notActive">
+				<p>Letterhead I created as part of my personal brand to complete the trinity and maintain a monochrome geometric theming.</p>
+				<img src="./resources/letterheadImgCropped.jpg" alt="">
+			</div>
+		</div>
+	</section>
+	<section class="triGroup" id="Misc">
+		<div class="triContent">
+			<h2>SomNet Logo</h2>
+		</div>
+		<div class="triContent">
+			<h2>BakuSoft Logo</h2>
+		</div>
+		<div class="triContent">
+			<h2>Figma Proto</h2>
+		</div>
+		<div class="triContent centerTri" data-hasTransition="False">
+			<h2 class="centerContent activeCenter">Misc</h2>
+			<div class="topContent notActive">
+				<p>A logo created for my DreamDiver game; Represents the fictional company behind the game's world, elliciting imagery of networks and a goat's eye.</p>
+				<img src="./resources/SomNetLogo.png" alt="">
+			</div>
+			<div class="rightContent notActive">
+				<p>Another logo I created for my DreamDiver game; Represents a software company aiding the player's exploration, elliciting imagery of a Baku, a 'dream-eater' yokai entity, and dreams in general.<br></p>
+				<img src="./resources/BakuSoftLogo.png" alt="">
+			</div>
+			<div class="leftContent notActive">
+				<p>Interactive Figma prototype I created to accompany the Pompeii poster. <br>
+					<a target="_blank" rel="noopener noreferrer" href="https://www.figma.com/proto/jPLiO1a9zRVz770sZ448eu/Cole_Krushel_LandmarkInteractive?node-id=0-1&t=flcjYeJxYyLxUGRa-1">Figma Link</a>
+				</p>
+				<img src="./resources/figmaHome.png" alt="">
+			</div>
+		</div>
+	</section>
+	<div class="infoPanel notActive">
+		<h2></h2>
+		<div id="panelContent">
+			<p></p>
+			
+		</div>
+		<img class="zoomable" src="./resources/menu1.jpg">
+		<button class="closeBtn">
+			<span>Close</span>
+		</button>
+	</div>
+	<div class="image-overlay">
+		<img>
+	</div>
+  </body>
+</html>
