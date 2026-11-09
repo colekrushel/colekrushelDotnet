@@ -20,10 +20,19 @@ function init(){
     document.body.appendChild(renderer.domElement);
 
     // 2. Create the pyramid using ConeGeometry (radius, height, radialSegments)
-    const geometry = new THREE.ConeGeometry(1, 2, 4); 
-    const material = new THREE.MeshStandardMaterial({ color: 0x00cc00, roughness: 0.4 });
-    pyramid = new THREE.Mesh(geometry, material);
-    scene.add(pyramid);
+    // const geometry = new THREE.ConeGeometry(1, 2, 4); 
+    // const material = new THREE.MeshStandardMaterial({ color: 0x00cc00, roughness: 0.4 });
+    // pyramid = new THREE.Mesh(geometry, material);
+    // scene.add(pyramid);
+
+    //create tetrahedron
+    let tetraGeometry;
+    let material; 
+
+    //create fractal vertices
+    const nodes = createFractalPositions(6);
+    const mesh = new THREE.InstancedMesh(tetraGeometry, material, nodes.length);
+    
 
     // Add a light so MeshStandardMaterial is visible
     const light = new THREE.DirectionalLight(0xffffff, 3);
@@ -35,6 +44,35 @@ function init(){
 
     animate();
 
+}
+
+function createFractalPositions(depth, size = 2){
+    //base pyramid vertices
+    let sideLength = 1;
+    let verts = [
+        new THREE.Vector3(0, 0, 1), //top vertex
+        new THREE.Vector3(sideLength/2, sideLength/2, 0),
+        new THREE.Vector3(-sideLength/2, sideLength/2, 0),
+        new THREE.Vector3(-sideLength/2, sideLength/2, 0),
+        new THREE.Vector3(sideLength/2, -sideLength/2, 0),
+    ].map(v => v.multiplyScalar(size / 2));
+
+    //each node = { origin offset, scale}
+    //fractal loop; for each depth, turn each vertex into a set of 5 more (for the pyramid recursion)
+    let nodes = [{ pos: new THREE.Vector3(), scale: 1}];
+    for(let d = 0; d < depth; d++){
+        const next = [];
+        for(const n of nodes){
+            for(const v of verts){
+                next.push({
+                    pos: n.pos.clone().addScaledVector(v, n.scale * 0.5),
+                    scale: n.scale * 0.5,
+                });
+            }
+        }
+        nodes = next;
+    }
+    return nodes;
 }
 
 // render loop
