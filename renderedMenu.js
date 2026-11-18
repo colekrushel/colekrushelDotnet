@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import fragmentShader from './shaders/highlightNearMouseFragment.glsl?raw';
+import vertexShader from './shaders/highlightNearMouseVertex.glsl?raw';
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -25,6 +27,36 @@ const FACES = {
 
 var currentFace = FACES.front;
 
+//uniforms for shaders
+const uniforms = {
+    uMouse: {value: new THREE.Vector2(0.5, 0.5)},
+    uResolution: {value: new THREE.Vector2(window.innerWidth, window.innerHeight)},
+    uBaseColor: {value: new THREE.Color(0x4f4f4f)},
+    uColorNear: {value: new THREE.Color(0x4d4dff)},
+    uRadius: {value: 0.2},        //fraction of screen height
+    uDepthPower: {value: 1.0},     //higher = deeper pyramids lose the highlight faster
+    //set by updateDepthUniforms() whenever the camera face changes
+    uFaceNormal: {value: new THREE.Vector3()},
+    uFacePlane: {value: 0},
+    uDepthSpan: {value: 1}
+};
+
+//shaders
+const cursorHighlightMaterial = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    uniforms, //default vertex shader
+    vertexShader,
+    fragmentShader
+});
+
+//events
+window.addEventListener('pointermove', (e) => {
+    uniforms.uMouse.value.set(
+        e.clientX / window.innerWidth,
+        1.0 - e.clientY / window.innerHeight
+    );
+});
+
 //returns {position, target, up} for a camera looking at a face
 function faceView(face, margin = 1.1){
     //calc normal vector of face
@@ -46,10 +78,29 @@ function faceView(face, margin = 1.1){
         (width / 2) / (tanHalf * camera.aspect)
     ) * margin;
 
-    return {position: target.clone().addScaledVector(normal, dist), target, up};
+    return {position: target.clone().addScaledVector(normal, dist), target, up, normal};
 }
 
+//update shader with the normal and plane of the side of the fractal facing the camera
+//assuming mesh isnt rotated
+function updateDepthUniforms(view){
+    const plane = view.target.dot(view.normal); //target lies in face's plane
+    let span = 0;
+    for(const v of PYRAMID_VERTS){
+        span = Math.max(span, plane - v.dot(view.normal));
+    }
+    uniforms.uFaceNormal.value.copy(view.normal);
+    uniforms.uFacePlane.value = plane;
+    uniforms.uDepthSpan.value = span;
+}
 
+//point the camera at a face; call this (not applyView) when the face or aspect changes
+function setFace(face){
+    currentFace = face;
+    const view = faceView(face);
+    applyView(view);
+    updateDepthUniforms(view);
+}
 
 function applyView(view) {
     camera.up.copy(view.up);
@@ -99,7 +150,7 @@ function init(){
     //init scene
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
-    applyView(faceView(currentFace));
+    setFace(currentFace);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -115,36 +166,34 @@ function init(){
 
     //create fractal vertices
     const nodes = createFractalPositions(4);
-    fractal = new THREE.InstancedMesh(createPyramidGeometry(), material, nodes.length);
+    fractal = new THREE.InstancedMesh(createPyramidGeometry(), cursorHighlightMaterial, nodes.length);
     fractal.frustumCulled = false; //dont mis cull instanced meshes
 
     //set properties
     const m = new THREE.Matrix4();
     const rotation = new THREE.Quaternion();
     const scale = new THREE.Vector3();
-    const color = new THREE.Color();
+    //const color = new THREE.Color().setRGB(0.1, 0.1, 0.1);
     nodes.forEach((n, i) => {
         scale.setScalar(n.scale);
         m.compose(n.pos, rotation, scale);
         fractal.setMatrixAt(i, m);
 
         //simple vertical gradient for structure
-        const t = THREE.MathUtils.clamp(n.pos.y / H + 0.5, 0, 1);
-        color.setHSL(0.08 + t * 0.12, 0.85, 0.45 + t * 0.15);
-        fractal.setColorAt(i, color);
+        //const t = THREE.MathUtils.clamp(n.pos.y / H + 0.5, 0, 1);
+        //color.setHSL(0.08 + t * 0.12, 0.85, 0.45 + t * 0.15);
+        //fractal.setColorAt(i, color);
     });
     fractal.instanceMatrix.needsUpdate = true;
-    fractal.instanceColor.needsUpdate = true;
+    //fractal.instanceColor.needsUpdate = true;
     scene.add(fractal);
     
 
-    // Add a light so MeshStandardMaterial is visible
-    const light = new THREE.DirectionalLight(0xffffff, 3);
-    light.position.set(5, 5, 5);
-    //light.position.set(0, 0, 2);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040, 5));
+    //const cameraLight = new THREE.PointLight(0xffffff, 5, 5, 1); //color, intensity, distance, decay
+    //camera.add(cameraLight);
+    //scene.add(new THREE.AmbientLight(0x404040, 5));
 
+    //scene.add(camera);
     
     window.addEventListener('resize', onResize);
     animate();
@@ -155,12 +204,13 @@ function onResize(){
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+    setFace(currentFace); //perspective is based on aspect so update
 }
 
 
 // render loop
 function animate() {
-    applyView(faceView(currentFace));
     requestAnimationFrame(animate);
     //fractal.rotation.y += 0.003; //temp rot for test
     renderer.render(scene, camera);
